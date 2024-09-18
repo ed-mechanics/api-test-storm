@@ -1,0 +1,14 @@
+fastapi==0.109.1
+uvicorn==0.22.0
+sqlalchemy==2.0.21
+pydantic==2.2.1
+pydantic-settings==2.0.3
+alembic==1.11.1
+psycopg2-binary==2.9.7
+requests==2.31.0
+celery==5.3.4
+redis==5.0.0
+allure-pytest==2.13.2
+alembic==1.11.1
+allure-python-commons~=2.13.2
+pytest==7.4.2

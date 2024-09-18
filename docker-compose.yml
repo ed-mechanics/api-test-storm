@@ -1,0 +1,66 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - my_network
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - my_network
+
+  web:
+    build: .
+    container_name: fastapi_app
+    command: /bin/bash -c "chmod +x ./start.sh && ./start.sh"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./allure-results:/app/allure-results
+    environment:
+      - ALLURE_RESULTS_DIR=/app/allure-results
+      - DATABASE_URL=${DATABASE_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      - db
+      - redis
+    networks:
+      - my_network
+
+  worker:
+    build: .
+    container_name: celery_worker
+    command: celery -A app.tasks worker --loglevel=info
+    volumes:
+      - .:/app
+      - ./allure-results:/app/allure-results
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - ALLURE_RESULTS_DIR=/app/allure-results
+    networks:
+      - my_network
+
+volumes:
+  postgres_data:
+
+networks:
+  my_network:
